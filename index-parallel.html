@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Key Collaboration</title>
+    <link rel="stylesheet" href="key-collab.css"/>
+    <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+    <script src="parallel.js"></script>
+    <script src="/key-collab-parallel.js"></script>
+  </head>
+  <body>
+    <h1>Key Collaboration</h1>
+    <div id="credit" class="toplevel">
+      <form>
+        <label for="name">Name (for credit): </label>
+        <input type="text" id="name" value=""/>
+      </form>
+    </div>
+    <div id="status" class="toplevel">
+      <div>
+        <span class="label">Global Rate</span>
+        <span id="global-rate" class="rate"></span>
+        <span id="global-clients" class="rate"></span>
+      </div>
+      <div id="overall-best" class="best">
+        <span class="label">Global Best</span>
+        <span id="overall-best-key" class="key">
+          --------------------------</span>
+        <span id="overall-best-score" class="score">0</span>
+        <span id="overall-best-name" class="name">0</span>
+      </div>
+      <div id="personal-best" class="best">
+        <span class="label">Personal Best</span>
+        <span id="personal-best-key" class="key">
+          --------------------------</span>
+        <span id="personal-best-score" class="score">0</span>
+        <span id="personal-best-count" class="count">0</span>
+      </div>
+      <div id="current" class="best">
+        <span class="label">Current Key</span>
+        <span id="current-key" class="key">
+          --------------------------</span>
+        <span id="current-score" class="score">0</span>
+        <span id="current-count" class="counte">0</span>
+      </div>
+    </div>
+    <div id="message" class="toplevel">
+    </div>
+    <div id="info" class="toplevel">
+      <h2>What is this thing?</h2>
+      <p>
+        <a href="http://redd.it/178vsz">
+          Challenge #118 [Hard] Alphabetizing cipher
+        </a>
+      </p>
+      <p>
+        Each tab you have open dedicates one of your CPU cores to the job.
+      </p>
+      <h2>Where's the source code?</h2>
+      <p>
+        <a href="https://github.com/skeeto/key-collab">
+          https://github.com/skeeto/key-collab
+        </a>
+      </p>
+    </div>
+  </body>
+</html>

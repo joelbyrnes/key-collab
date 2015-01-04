@@ -8,6 +8,8 @@ This project is a fork of https://github.com/skeeto/key-collab as discussed in h
 
 I hope to improve performance and use multiple cores, and possibly explore more generic computation.
 
+Parallel.js included from https://github.com/adambom/parallel.js
+
 ## Quick start
 
 These instructions are for Linux. Requires emacs 24. Windows should not be far different.
