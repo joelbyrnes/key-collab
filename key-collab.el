@@ -82,6 +82,7 @@
         (with-temp-buffer
           (insert-file-contents-literally file)
           (setq best (read (current-buffer)))))))
+    ; TODO create file
 
 (defservlet report text/plain (path args request)
   "Receive a report of a better solution from a client."
