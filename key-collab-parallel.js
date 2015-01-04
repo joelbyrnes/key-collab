@@ -13,14 +13,18 @@ function report(key) {
     }));
 }
 
-$(document).ready(function() {
+function doWork() {
     /* Fire off the web worker. */
     var start = new Date();
+
+    console.log("creating worker");
     var worker = new Worker("worker.js");
 
     /* Get updates from the worker. */
     var lastCpuReport = 0;
     worker.addEventListener('message', function(event) {
+        console.log("message from worker");
+
         var key = event.data;
         if (key.score > Math.max(overall.score, best.score)) {
             report(key.key);
@@ -84,8 +88,12 @@ $(document).ready(function() {
             $('#overall-best-score').text(overall.score);
             $('#overall-best-key').text(overall.key);
             $('#overall-best-name').text(overall.name);
+            // TODO recursive?? should use getTimeout
             getUpdate();
         });
     }
     getUpdate();
-});
+}
+
+doWork();
+

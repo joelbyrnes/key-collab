@@ -4,6 +4,7 @@ importScripts('key.js');
 
 /* Load data */
 Key.words = (function() {
+    console.log("getting words");
     var xhr = new XMLHttpRequest();
     xhr.open('GET', 'words', false);
     xhr.send();
@@ -14,6 +15,7 @@ Key.words = (function() {
     }
 }());
 
+// calls event handler for 'message' on main thread worker
 function report(key) {
     self.postMessage({
         key: key.key,
@@ -23,10 +25,14 @@ function report(key) {
     });
 }
 
-(function () {
+// worker runs here
+function main() {
+    console.log("running worker main");
     var key = Key.generate();
     var counter = 0;
     while (true) {
+//        console.log("worker iterating");
+        // report at arbitrary count of 157 - approx 1 second on author pc?
         if (Key.counter % 157 === 0) report(key);
         counter++;
         var mutate = Math.ceil(Math.pow(counter / 325, 3));
@@ -39,4 +45,7 @@ function report(key) {
             counter = 0;
         }
     }
-})();
+}
+
+main();
+
