@@ -14,8 +14,9 @@ These instructions are for Linux. Requires emacs 24. Windows should not be far d
 
 * clone repo
 * pull in dependencies: git submodule update
-* chmod +x run-server.sh
 * ./run-server.sh
+
+You might want to run it under screen: screen -S key-collab ./run-server.sh
 
 ## Original author's instructions
 
