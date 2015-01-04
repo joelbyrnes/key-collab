@@ -25,9 +25,8 @@ function report(key) {
     });
 }
 
-// worker runs here
-function main() {
-    console.log("running worker main");
+function worker() {
+    console.log("running worker");
     var key = Key.generate();
     var counter = 0;
     while (true) {
@@ -47,5 +46,5 @@ function main() {
     }
 }
 
-main();
+worker();
 
