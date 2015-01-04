@@ -34,6 +34,8 @@ the first argument when running the server on that platform.
 [simple-httpd]: https://github.com/skeeto/emacs-web-server
 [skewer-mode]: (https://github.com/skeeto/skewer-mode
 
+It's also worth byte-compiling since a validation check is done in Elisp by the server when a better solution is reported. Uncompiled, the check can take a couple of seconds!
+
 ## Basic benchmarks
 
 One tab was opened at a time in each browser on each machine. Each machine has 2-4 cores. One core at a time was 100% utilized.
