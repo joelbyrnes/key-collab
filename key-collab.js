@@ -13,56 +13,64 @@ function report(key) {
     }));
 }
 
-$(document).ready(function() {
+var start = null;
+var lastCpuReport = 0;
+
+function workerCallback(event) {
+    console.log("handling response from worker");
+
+    var key = event.data;
+    if (key.score > Math.max(overall.score, best.score)) {
+        report(key.key);
+    }
+    if (key.score > best.score) {
+        best = key;
+        $('#personal-best-key').text(key.key);
+        $('#personal-best-score').text(key.score);
+    }
+    var counter = key.counter;
+    key.rate = (counter / ((Date.now() - start) / 1000)).toFixed(1);
+    var msg = counter + ' keys tried (' + key.rate + ' / sec)';
+    $('#personal-best-count').text(msg);
+    $('#current-key').text(key.key);
+    $('#current-score').text(key.score);
+    $('#current-count').text('key #' + key.count);
+
+    /* Report CPU information to the server. */
+    if (lastCpuReport < Date.now() - 10000) {
+        var output = {
+            id: id,
+            rate: key.rate,
+            counter: key.counter
+        };
+        $.post('cpu', JSON.stringify(output), function(global) {
+            $('#global-rate').text(global.rate.toFixed(1) + ' keys / sec');
+            $('#global-clients').text(global.clients + ' clients');
+            if (global.version > version) {
+                location.reload(true);
+            }
+            if (global.message) {
+                if ($('#message').html() !== global.message) {
+                    $('#message').html(global.message);
+                    $('#message').show();
+                }
+            } else {
+                $('#message').hide();
+            }
+        }, 'json');
+        lastCpuReport = Date.now();
+    }
+}
+
+function doWork() {
     /* Fire off the web worker. */
-    var start = new Date();
+    start = new Date();
+
+    console.log("creating worker");
     var worker = new Worker("worker.js");
 
     /* Get updates from the worker. */
-    var lastCpuReport = 0;
-    worker.addEventListener('message', function(event) {
-        var key = event.data;
-        if (key.score > Math.max(overall.score, best.score)) {
-            report(key.key);
-        }
-        if (key.score > best.score) {
-            best = key;
-            $('#personal-best-key').text(key.key);
-            $('#personal-best-score').text(key.score);
-        }
-        var counter = key.counter;
-        key.rate = (counter / ((Date.now() - start) / 1000)).toFixed(1);
-        var msg = counter + ' keys tried (' + key.rate + ' / sec)';
-        $('#personal-best-count').text(msg);
-        $('#current-key').text(key.key);
-        $('#current-score').text(key.score);
-        $('#current-count').text('key #' + key.count);
-
-        /* Report CPU information to the server. */
-        if (lastCpuReport < Date.now() - 10000) {
-            var output = {
-                id: id,
-                rate: key.rate,
-                counter: key.counter
-            };
-            $.post('cpu', JSON.stringify(output), function(global) {
-                $('#global-rate').text(global.rate.toFixed(1) + ' keys / sec');
-                $('#global-clients').text(global.clients + ' clients');
-                if (global.version > version) {
-                    location.reload(true);
-                }
-                if (global.message) {
-                    if ($('#message').html() !== global.message) {
-                        $('#message').html(global.message);
-                        $('#message').show();
-                    }
-                } else {
-                    $('#message').hide();
-                }
-            }, 'json');
-            lastCpuReport = Date.now();
-        }
-    });
+    worker.addEventListener('message', workerCallback);
 
     /* Manage the form. */
     $('form').bind('submit', function() {
@@ -84,8 +92,12 @@ $(document).ready(function() {
             $('#overall-best-score').text(overall.score);
             $('#overall-best-key').text(overall.key);
             $('#overall-best-name').text(overall.name);
+            // TODO recursive?? should use getTimeout
             getUpdate();
         });
     }
     getUpdate();
-});
+}
+
+doWork();
+

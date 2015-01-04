@@ -25,26 +25,31 @@ function report(key) {
     });
 }
 
-function worker() {
-    console.log("running worker");
-    var key = Key.generate();
-    var counter = 0;
-    while (true) {
-//        console.log("worker iterating");
-        // report at arbitrary count of 157 - approx 1 second on author pc?
-        if (Key.counter % 157 === 0) report(key);
-        counter++;
-        var mutate = Math.ceil(Math.pow(counter / 325, 3));
-        var next = key.derive(mutate);
-        if (next.score > key.score) {
-            key = next;
-            counter = 0;
-        } else if (mutate >= key.key.length) {
-            key = Key.generate();
-            counter = 0;
-        }
+var key = Key.generate();
+var counter = 0;
+
+function iterate() {
+    // report at arbitrary count of 157 - approx 1 second on author pc?
+    if (Key.counter % 157 === 0) report(key);
+    counter++;
+    var mutate = Math.ceil(Math.pow(counter / 325, 3));
+    var next = key.derive(mutate);
+    if (next.score > key.score) {
+        key = next;
+        counter = 0;
+    } else if (mutate >= key.key.length) {
+        key = Key.generate();
+        counter = 0;
     }
 }
 
+function worker() {
+    while (true) {
+        console.log("worker iterating");
+        iterate();
+    }
+}
+
+console.log("running worker");
 worker();
 
