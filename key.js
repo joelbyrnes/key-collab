@@ -31,9 +31,11 @@ function Key(keystring) {
         this[Key.ALPHABET[j]] = this.key[j];
     }
     this.score = 0;
+    this.matches = [];
     for (var i = 0; i < Key.words.length; i++) {
         if (this.encode(Key.words[i]).isSorted()) {
             this.score++;
+            this.matches.push(Key.words[i]);
         }
     }
 }

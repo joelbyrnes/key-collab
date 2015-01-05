@@ -17,7 +17,7 @@ var start = null;
 var lastCpuReport = 0;
 
 function workerCallback(event) {
-    console.log("handling response from worker");
+//    console.log("handling response from worker");
 
     var key = event.data;
     if (key.score > Math.max(overall.score, best.score)) {
@@ -35,6 +35,8 @@ function workerCallback(event) {
     $('#current-key').text(key.key);
     $('#current-score').text(key.score);
     $('#current-count').text('key #' + key.count);
+
+    $('#matches').html(key.matches.join("<br/>"));
 
     /* Report CPU information to the server. */
     if (lastCpuReport < Date.now() - 10000) {
