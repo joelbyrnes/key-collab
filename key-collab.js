@@ -16,6 +16,22 @@ function report(key) {
 var start = null;
 var lastCpuReport = 0;
 
+Array.prototype.getUnique = function(){
+    var u = {}, a = [];
+    for(var i = 0, l = this.length; i < l; ++i){
+        if(u.hasOwnProperty(this[i])) {
+            continue;
+        }
+        a.push(this[i]);
+        u[this[i]] = 1;
+    }
+    return a;
+};
+
+function uniqueChars(words) {
+    return words.join('').split('').getUnique();
+}
+
 function workerCallback(event) {
 //    console.log("handling response from worker");
 
@@ -37,6 +53,9 @@ function workerCallback(event) {
     $('#current-count').text('key #' + key.count);
 
     $('#matches').html(key.matches.join("<br/>"));
+
+    var uniqueWordsChars = uniqueChars(key.matches);
+    console.log("matches unique chars len = " + uniqueWordsChars.length + ", " + uniqueWordsChars.sort().join(''));
 
     /* Report CPU information to the server. */
     if (lastCpuReport < Date.now() - 10000) {

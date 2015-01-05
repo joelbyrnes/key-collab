@@ -16,10 +16,40 @@ function report(key) {
 var start = null;
 var lastCpuReport = 0;
 
-function workerCallback(event) {
-    console.log("message from worker");
+/* Load data */
+function getWords() {
+    console.log("getting words");
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', 'words', false);
+    xhr.send();
+    if (xhr.status === 200) {
+        return JSON.parse(xhr.responseText);
+    } else {
+        return [];
+    }
+}
 
-    var key = event.data;
+Array.prototype.getUnique = function(){
+    var u = {}, a = [];
+    for(var i = 0, l = this.length; i < l; ++i){
+        if(u.hasOwnProperty(this[i])) {
+            continue;
+        }
+        a.push(this[i]);
+        u[this[i]] = 1;
+    }
+    return a;
+};
+
+function uniqueChars(words) {
+    return words.join('').split('').getUnique();
+}
+
+function workerCallback(data) {
+    console.log("handling response from worker");
+    console.log(data);
+
+    var key = data;
     if (key.score > Math.max(overall.score, best.score)) {
         report(key.key);
     }
@@ -35,6 +65,11 @@ function workerCallback(event) {
     $('#current-key').text(key.key);
     $('#current-score').text(key.score);
     $('#current-count').text('key #' + key.count);
+
+    $('#matches').html(key.matches.join("<br/>"));
+
+    var uniqueWordsChars = uniqueChars(key.matches);
+    console.log("matches unique chars len = " + uniqueWordsChars.length + ", " + uniqueWordsChars.sort().join(''));
 
     /* Report CPU information to the server. */
     if (lastCpuReport < Date.now() - 10000) {
@@ -62,15 +97,78 @@ function workerCallback(event) {
     }
 }
 
+function worker(words) {    // should be keys
+    // how to get words? env?
+    Key.words = words;
+
+    console.log("running worker main");
+    var key = Key.generate();
+    var counter = 0;
+
+    // TODO loop limit
+    while (true) {
+        console.log("worker iterating");
+        counter++;
+
+        var mutate = Math.ceil(Math.pow(counter / 325, 3));
+        var next = key.derive(mutate);
+        if (next.score > key.score) {
+            key = next;
+            counter = 0;
+        } else if (mutate >= key.key.length) {
+            key = Key.generate();
+            counter = 0;
+        }
+
+        // report at arbitrary count of 157 - approx 1 second, prime
+        if (Key.counter % 157 === 0) break;
+    }
+
+    return {
+        key: key.key,
+        score: key.score,
+        count: key.count,
+        counter: Key.counter,
+        matches: key.matches
+    };
+}
+
+
 function doWork() {
+    // TODO wtf?
+    console.log($('#debugdiv').text());
+    $('#debugdiv').html("debug");
+
     /* Fire off the web worker. */
     start = new Date();
 
-    console.log("creating worker");
-    var worker = new Worker("worker.js");
+    var words = getWords();
 
-    /* Get updates from the worker. */
-    worker.addEventListener('message', workerCallback);
+    var uniqueWordsChars = uniqueChars(words);
+    console.log("all words unique chars len = " + uniqueWordsChars.length + ", " + uniqueWordsChars.sort().join(''));
+
+    // generate 157 keys
+    // create parallel over keys
+    // spawn worker over it
+    // get results to callback
+
+    console.log("spawning parallel worker");
+
+    var keys = new Array(157);
+    for (i=0; i< keys.length; i++) {
+
+    }
+
+    var p = new Parallel(words, { evalPath: 'eval.js' });
+    p.require('key.js');
+
+    p.spawn(worker).then(workerCallback);
+
+//    console.log("creating worker");
+//    var worker = new Worker("worker.js");
+
+//    /* Get updates from the worker. */
+//    worker.addEventListener('message', workerCallback);
 
     /* Manage the form. */
     $('form').bind('submit', function() {
