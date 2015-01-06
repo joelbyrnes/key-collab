@@ -54,6 +54,7 @@ function worker() {
             //console.log("mutate too long (" + mutate + "), resetting at counter = " + counter);
             counter = 0;
         } else {
+            // keep same key for next mutation
             //console.log("continuing with key");
         }
     }

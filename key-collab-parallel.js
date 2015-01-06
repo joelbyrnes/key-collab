@@ -45,6 +45,44 @@ function uniqueChars(words) {
     return words.join('').split('').getUnique();
 }
 
+function parallelCallback(keys) {
+    console.log("handling result of parallel map");
+    console.log(keys);
+
+    // handle all jobs
+    // create new jobs with key from last job
+    // produce these values:
+//        key: key.key,
+//        score: key.score,
+//        count: key.count,
+//        counter: Key.counter,
+//        matches: key.matches
+
+    var key = {
+        key: null,
+        score: -1,
+        count: 0,
+        counter: 0,
+        matches: []
+    };
+
+    var bestkey = keys[0];
+    keys.forEach(function(curkey) {
+        console.log("key " + curkey.key + " has score " + curkey.score + ", count " + curkey.count + ", counter " + curkey.counter);
+        // TODO find best
+        key['count'] = key['count'] + curkey.count;
+        key['counter'] = key['counter'] + curkey.counter;
+
+        if (curkey.score > bestkey.score) bestkey = curkey;
+    });
+
+    key['key'] = bestkey.key;
+    key['score'] = bestkey.score;
+    key['matches'] = bestkey.matches;
+
+    workerCallback(key);
+}
+
 function workerCallback(data) {
     console.log("handling response from worker");
     console.log(data);
@@ -133,13 +171,63 @@ function worker(words) {    // should be keys
     };
 }
 
+function parallelWorker(counter) {
+    Key.words = global.env.words;
+    var key = global.env.key;
+
+    console.log("running parallelWorker");
+
+    // generate if null ie first run
+    if (key == null) key = Key.generate();
+
+    var mutate = Math.ceil(Math.pow(counter / 325, 3));
+    //console.log("mutate = " + mutate + ", key length = " + key.key.length);
+
+    var next = key.derive(mutate);
+    var nextKey = null;
+
+    if (next.score > key.score) {
+        console.log("next key better, resetting at counter = " + counter);
+        nextKey = next.key;
+        counter = 0;
+    } else if (mutate >= key.key.length) {
+        console.log("mutate too long (" + mutate + "), resetting at counter = " + counter);
+        nextKey = null;
+        counter = 0;
+    } else {
+        // keep same key for next mutation
+        console.log("continuing with key");
+        nextKey = key.key
+    }
+
+    // return key results, plus key to use next
+    return {
+        key: key.key,
+        score: key.score,
+        count: key.count,
+        counter: Key.counter,
+        matches: key.matches,
+        nextKey: nextKey
+    };
+}
+
+function reducefn(d) {
+//    return d[0] + d[1];
+    return {
+        key: key.key,
+        score: key.score,
+        count: key.count,
+        counter: Key.counter,
+        matches: key.matches,
+        nextKey: nextKey
+    };
+}
 
 function doWork() {
     // TODO wtf?
     console.log($('#debugdiv').text());
     $('#debugdiv').html("debug");
 
-    /* Fire off the web worker. */
     start = new Date();
 
     var words = getWords();
@@ -147,22 +235,29 @@ function doWork() {
     var uniqueWordsChars = uniqueChars(words);
     console.log("all words unique chars len = " + uniqueWordsChars.length + ", " + uniqueWordsChars.sort().join(''));
 
-    // generate 157 keys
-    // create parallel over keys
-    // spawn worker over it
+    // generate 157 jobs
+    // run parallel map
     // get results to callback
+    // run again... ?
 
-    console.log("spawning parallel worker");
+    console.log("generating jobs");
 
-    var keys = new Array(157);
-    for (i=0; i< keys.length; i++) {
-
+    var jobs = new Array(4);
+    for (var i=0; i % 4 !== 0; i++) {
+        jobs[i] = 0;
     }
 
-    var p = new Parallel(words, { evalPath: 'eval.js' });
+    console.log("creating parallel with "+ jobs.length + " jobs");
+
+    var p = new Parallel(jobs, {
+        evalPath: 'eval.js', // needed to require a js file
+        env: { key: null, words: words }
+    });
     p.require('key.js');
 
-    p.spawn(worker).then(workerCallback);
+    console.log("running parallel map");
+
+    p.map(parallelWorker).then(parallelCallback);
 
 //    console.log("creating worker");
 //    var worker = new Worker("worker.js");
