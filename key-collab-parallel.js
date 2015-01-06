@@ -211,10 +211,6 @@ function createParallel(keys, words) {
 }
 
 function doWork() {
-    // TODO wtf?
-    console.log($('#debugdiv').text());
-    $('#debugdiv').html("debug");
-
     start = new Date();
     words = getWords();
 
