@@ -45,7 +45,11 @@ Key.counter = 0;
 Key.words = [];
 
 Key.generate = function() {
-    return new Key(Key.ALPHABET.split('').shuffle().join(''));
+    return new Key(this.random());
+};
+
+Key.random = function() {
+    return Key.ALPHABET.split('').shuffle().join('');
 };
 
 Key.prototype.derive = function(n) {

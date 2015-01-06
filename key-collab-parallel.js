@@ -45,6 +45,8 @@ function uniqueChars(words) {
     return words.join('').split('').getUnique();
 }
 
+var currentKeys = [];
+
 function parallelCallback(keys) {
     console.log("handling result of parallel map");
     console.log(keys);
@@ -74,7 +76,11 @@ function parallelCallback(keys) {
         key['counter'] = key['counter'] + curkey.counter;
 
         if (curkey.score > bestkey.score) bestkey = curkey;
+
+//        currentKeys.push();
     });
+
+    console.log("best is " + bestkey.key + " with score " + bestkey.score);
 
     key['key'] = bestkey.key;
     key['score'] = bestkey.score;
@@ -97,8 +103,9 @@ function workerCallback(data) {
         $('#personal-best-score').text(key.score);
     }
     var counter = key.counter;
-    key.rate = (counter / ((Date.now() - start) / 1000)).toFixed(1);
-    var msg = counter + ' keys tried (' + key.rate + ' / sec)';
+    var seconds = (Date.now() - start) / 1000;
+    key.rate = (counter / seconds).toFixed(1);
+    var msg = counter + ' keys tried (' + key.rate + ' / sec) over ' + seconds + " secs" ;
     $('#personal-best-count').text(msg);
     $('#current-key').text(key.key);
     $('#current-score').text(key.score);
@@ -135,16 +142,17 @@ function workerCallback(data) {
     }
 }
 
-function worker(words) {    // should be keys
-    // how to get words? env?
-    Key.words = words;
+function worker(counter) {
+    Key.words = global.env.words;
+    var key = global.env.key;
 
     console.log("running worker main");
-    var key = Key.generate();
-    var counter = 0;
 
-    // TODO loop limit
-    while (true) {
+    // generate if null ie first run
+    if (key == null) key = Key.generate();
+
+    // return at arbitrary prime number - approx 1 second
+    while (Key.counter % 37 !== 0) {
         console.log("worker iterating");
         counter++;
 
@@ -157,9 +165,6 @@ function worker(words) {    // should be keys
             key = Key.generate();
             counter = 0;
         }
-
-        // report at arbitrary count of 157 - approx 1 second, prime
-        if (Key.counter % 157 === 0) break;
     }
 
     return {
@@ -242,8 +247,8 @@ function doWork() {
 
     console.log("generating jobs");
 
-    var jobs = new Array(4);
-    for (var i=0; i % 4 !== 0; i++) {
+    var jobs = new Array(8);
+    for (var i=0; i % 8 !== 0; i++) {
         jobs[i] = 0;
     }
 
@@ -257,7 +262,7 @@ function doWork() {
 
     console.log("running parallel map");
 
-    p.map(parallelWorker).then(parallelCallback);
+    p.map(worker).then(parallelCallback);
 
 //    console.log("creating worker");
 //    var worker = new Worker("worker.js");
