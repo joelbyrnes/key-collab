@@ -1,3 +1,5 @@
+"use strict";
+
 var version = 6;
 
 var best = {score: -1};
@@ -68,14 +70,14 @@ function parallelCallback(keys) {
     var bestkey = keys[0];
     var nextkeys = [];
     keys.forEach(function(curkey) {
-        console.log("key " + curkey.key + " has score " + curkey.score + ", count " + curkey.count + ", counter " + curkey.counter);
+        console.log("key " + curkey.key + " has score " + curkey.score + ", count " + curkey.count + ", Key.counter " + curkey.counter);
         // TODO find best
         key['count'] = key['count'] + curkey.count;
         totalKeysTried += curkey.counter;
 
         if (curkey.score > bestkey.score) bestkey = curkey;
 
-        nextkeys.push(curkey.key);
+        nextkeys.push({key: curkey.key, mutateCounter: curkey.mutateCounter});
     });
 
     console.log("best is " + bestkey.key + " with score " + bestkey.score);
@@ -143,18 +145,18 @@ function update(key) {
     }
 }
 
-function worker(keystring) {
+function worker(data) {
     Key.words = global.env.words;
+    var counter = data.mutateCounter || 0;
 
-    console.log("running worker");
+    console.log("running worker with counter = " + counter);
 
     var key;
     // generate if null ie first run
-    if (keystring == null) {
+    if (data.key == null) {
         console.log("key is null, first run? generating.");
         key = Key.generate();
-    } else { key = new Key(keystring) }
-    var counter = 0;
+    } else { key = new Key(data.key) }
 
     // return at arbitrary prime number to give updates
     while (Key.counter % 37 !== 0) {
@@ -177,47 +179,8 @@ function worker(keystring) {
         score: key.score,
         count: key.count,
         counter: Key.counter,
-        matches: key.matches
-    };
-}
-
-function parallelWorker(counter) {
-    Key.words = global.env.words;
-    var key = global.env.key;
-
-    console.log("running parallelWorker");
-
-    // generate if null ie first run
-    if (key == null) key = Key.generate();
-
-    var mutate = Math.ceil(Math.pow(counter / 325, 3));
-    //console.log("mutate = " + mutate + ", key length = " + key.key.length);
-
-    var next = key.derive(mutate);
-    var nextKey = null;
-
-    if (next.score > key.score) {
-        console.log("next key better, resetting at counter = " + counter);
-        nextKey = next.key;
-        counter = 0;
-    } else if (mutate >= key.key.length) {
-        console.log("mutate too long (" + mutate + "), resetting at counter = " + counter);
-        nextKey = null;
-        counter = 0;
-    } else {
-        // keep same key for next mutation
-        console.log("continuing with key");
-        nextKey = key.key
-    }
-
-    // return key results, plus key to use next
-    return {
-        key: key.key,
-        score: key.score,
-        count: key.count,
-        counter: Key.counter,
         matches: key.matches,
-        nextKey: nextKey
+        mutateCounter: counter
     };
 }
 
@@ -260,7 +223,7 @@ function doWork() {
 
     var keys = [];
     for (var i=0; i < 4; i++) {
-        keys.push(null);
+        keys.push({});
     }
 
     createParallel(keys, words);
