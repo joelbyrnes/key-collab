@@ -47,7 +47,7 @@ function workerCallback(event) {
     var counter = key.counter;
     var seconds = (Date.now() - start) / 1000;
     key.rate = (counter / seconds).toFixed(1);
-    var msg = counter + ' keys tried (' + key.rate + ' / sec) over ' + seconds + " secs" ;
+    var msg = counter + ' keys tried (' + key.rate + ' / sec) over ' + seconds.toFixed(1) + " secs" ;
     $('#personal-best-count').text(msg);
     $('#current-key').text(key.key);
     $('#current-score').text(key.score);

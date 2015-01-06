@@ -14,6 +14,7 @@ function report(key) {
 }
 
 var start = null;
+var words = [];
 var lastCpuReport = 0;
 
 /* Load data */
@@ -45,20 +46,16 @@ function uniqueChars(words) {
     return words.join('').split('').getUnique();
 }
 
-var currentKeys = [];
+var totalKeysTried = 0;
 
+// this might be better as a reduce function, if we can validly report all keys and counts
 function parallelCallback(keys) {
     console.log("handling result of parallel map");
     console.log(keys);
 
     // handle all jobs
     // create new jobs with key from last job
-    // produce these values:
-//        key: key.key,
-//        score: key.score,
-//        count: key.count,
-//        counter: Key.counter,
-//        matches: key.matches
+    // produce best of and counts
 
     var key = {
         key: null,
@@ -69,15 +66,16 @@ function parallelCallback(keys) {
     };
 
     var bestkey = keys[0];
+    var nextkeys = [];
     keys.forEach(function(curkey) {
         console.log("key " + curkey.key + " has score " + curkey.score + ", count " + curkey.count + ", counter " + curkey.counter);
         // TODO find best
         key['count'] = key['count'] + curkey.count;
-        key['counter'] = key['counter'] + curkey.counter;
+        totalKeysTried += curkey.counter;
 
         if (curkey.score > bestkey.score) bestkey = curkey;
 
-//        currentKeys.push();
+        nextkeys.push(curkey.key);
     });
 
     console.log("best is " + bestkey.key + " with score " + bestkey.score);
@@ -86,14 +84,17 @@ function parallelCallback(keys) {
     key['score'] = bestkey.score;
     key['matches'] = bestkey.matches;
 
-    workerCallback(key);
+    key['counter'] = totalKeysTried;
+
+    createParallel(nextkeys, words);
+
+    update(key);
 }
 
-function workerCallback(data) {
-    console.log("handling response from worker");
-    console.log(data);
+function update(key) {
+    console.log("handling update");
+    console.log(key);
 
-    var key = data;
     if (key.score > Math.max(overall.score, best.score)) {
         report(key.key);
     }
@@ -105,7 +106,7 @@ function workerCallback(data) {
     var counter = key.counter;
     var seconds = (Date.now() - start) / 1000;
     key.rate = (counter / seconds).toFixed(1);
-    var msg = counter + ' keys tried (' + key.rate + ' / sec) over ' + seconds + " secs" ;
+    var msg = counter + ' keys tried (' + key.rate + ' / sec) over ' + seconds.toFixed(1) + " secs" ;
     $('#personal-best-count').text(msg);
     $('#current-key').text(key.key);
     $('#current-score').text(key.score);
@@ -142,18 +143,22 @@ function workerCallback(data) {
     }
 }
 
-function worker(counter) {
+function worker(keystring) {
     Key.words = global.env.words;
-    var key = global.env.key;
 
-    console.log("running worker main");
+    console.log("running worker");
 
+    var key;
     // generate if null ie first run
-    if (key == null) key = Key.generate();
+    if (keystring == null) {
+        console.log("key is null, first run? generating.");
+        key = Key.generate();
+    } else { key = new Key(keystring) }
+    var counter = 0;
 
-    // return at arbitrary prime number - approx 1 second
+    // return at arbitrary prime number to give updates
     while (Key.counter % 37 !== 0) {
-        console.log("worker iterating");
+//        console.log("worker iterating");
         counter++;
 
         var mutate = Math.ceil(Math.pow(counter / 325, 3));
@@ -228,47 +233,37 @@ function reducefn(d) {
     };
 }
 
-function doWork() {
-    // TODO wtf?
-    console.log($('#debugdiv').text());
-    $('#debugdiv').html("debug");
+function createParallel(keys, words) {
+    console.log("creating parallel with "+ keys.length + " jobs");
 
-    start = new Date();
-
-    var words = getWords();
-
-    var uniqueWordsChars = uniqueChars(words);
-    console.log("all words unique chars len = " + uniqueWordsChars.length + ", " + uniqueWordsChars.sort().join(''));
-
-    // generate 157 jobs
-    // run parallel map
-    // get results to callback
-    // run again... ?
-
-    console.log("generating jobs");
-
-    var jobs = new Array(8);
-    for (var i=0; i % 8 !== 0; i++) {
-        jobs[i] = 0;
-    }
-
-    console.log("creating parallel with "+ jobs.length + " jobs");
-
-    var p = new Parallel(jobs, {
+    var p = new Parallel(keys, {
         evalPath: 'eval.js', // needed to require a js file
-        env: { key: null, words: words }
+        env: { words: words }
     });
     p.require('key.js');
 
     console.log("running parallel map");
 
     p.map(worker).then(parallelCallback);
+}
 
-//    console.log("creating worker");
-//    var worker = new Worker("worker.js");
+function doWork() {
+    // TODO wtf?
+    console.log($('#debugdiv').text());
+    $('#debugdiv').html("debug");
 
-//    /* Get updates from the worker. */
-//    worker.addEventListener('message', workerCallback);
+    start = new Date();
+    words = getWords();
+
+    var uniqueWordsChars = uniqueChars(words);
+    console.log("all words unique chars len = " + uniqueWordsChars.length + ", " + uniqueWordsChars.sort().join(''));
+
+    var keys = [];
+    for (var i=0; i < 4; i++) {
+        keys.push(null);
+    }
+
+    createParallel(keys, words);
 
     /* Manage the form. */
     $('form').bind('submit', function() {
