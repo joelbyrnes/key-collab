@@ -89,7 +89,7 @@ function doWork() {
     start = new Date();
 
     console.log("creating worker");
-    var worker = new Worker("worker.js");
+    var worker = new Worker("key-worker.js");
 
     /* Get updates from the worker. */
     worker.addEventListener('message', workerCallback);
