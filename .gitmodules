@@ -4,3 +4,6 @@
 [submodule "lib/skewer-mode"]
 	path = lib/skewer-mode
 	url = https://github.com/skeeto/skewer-mode.git
+[submodule "paralleljs"]
+	path = paralleljs
+	url = https://github.com/adambom/parallel.js.git
