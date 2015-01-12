@@ -52,12 +52,21 @@ Key.random = function() {
     return Key.ALPHABET.split('').shuffle().join('');
 };
 
-Key.prototype.derive = function(n) {
+Key.prototype.deriveRandom = function(n) {
     var base = this.key.split('');
     for (var i = 0; i < n; i++) {
         base.swap(Math.randomN(base.length),
                   Math.randomN(base.length));
     }
+    return new Key(base.join(''));
+};
+
+Key.prototype.mutate = function(n) {
+    var start = Math.floor(n / 26);
+    var idx = (n % 26);
+
+    var base = this.key.split('');
+    base.swap(start, idx);
     return new Key(base.join(''));
 };
 

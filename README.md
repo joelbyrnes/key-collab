@@ -15,7 +15,7 @@ Parallel.js included from https://github.com/adambom/parallel.js
 These instructions are for Linux. Requires emacs 24. Windows should not be far different.
 
 * clone repo
-* pull in dependencies: git submodule update
+* pull in dependencies: git submodule update --init
 * ./run-server.sh
 
 You might want to run it under screen: screen -S key-collab ./run-server.sh

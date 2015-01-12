@@ -164,7 +164,7 @@ function worker(data) {
         counter++;
 
         var mutate = Math.ceil(Math.pow(counter / 325, 3));
-        var next = key.derive(mutate);
+        var next = key.deriveRandom(mutate);
         if (next.score > key.score) {
             key = next;
             counter = 0;

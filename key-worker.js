@@ -44,7 +44,7 @@ function worker() {
         counter++;
         var mutate = Math.ceil(Math.pow(counter / 325, 3));
         //console.log("mutate = " + mutate + ", key length = " + key.key.length);
-        var next = key.derive(mutate);
+        var next = key.deriveRandom(mutate);
         if (next.score > key.score) {
             key = next;
             //console.log("next key better, resetting at counter = " + counter);
