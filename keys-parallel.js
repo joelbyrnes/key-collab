@@ -5,14 +5,11 @@ var workers = null;
 var start = null;
 var totalKeysTried = 0;
 
-var best = {score: -1};
+var best = {score: -1, key: "jbexuatfndshgoicwvzqklmpyr"};
 var overall = {score: -1};
 var name = localStorage.name || "anonymous";
 var id = Math.floor(Math.random() * 0xffffff).toString(16);
 var lastCpuReport = 0;
-
-// TODO this and maybe other keys should be retrieved from the server, stored some generic way
-var bestkey = "jbexuatfndshgoicwvzqklmpyr";
 
 /* Report KEY to the server. */
 function report(key) {
@@ -84,10 +81,10 @@ function parallelCallback(keylists) {
     // flatten
     var keys = Array.prototype.concat.apply([], keylists);
     console.log(keys.length + " keys returned");
-    var best = Key.findBestKey(keys);
-    bestkey = best.key;
+    var latestBest = Key.findBestKey(keys);
+    best = latestBest.key;
 
-    console.log("best is " + bestkey + " with score " + best.score);
+    console.log("best is " + best.key + " with score " + latestBest.score);
 
     totalKeysTried += keys.length;
 
@@ -97,11 +94,55 @@ function parallelCallback(keylists) {
     console.log(msg);
 
     // todo spawn parallel?
-    var nextkeys = mutatedKeys(best.key);
+    var nextkeys = mutatedKeys(latestBest.key);
 
     runIfNotPaused(nextkeys, words);
 
-    //update(key);
+    update(latestBest);
+}
+
+function update(key) {
+    if (key.score > Math.max(overall.score, best.score)) {
+        report(key.key);
+    }
+    if (key.score > best.score) {
+        best = key;
+        $('#personal-best-key').text(key.key);
+        $('#personal-best-score').text(key.score);
+    }
+    var counter = key.counter;
+    var seconds = (Date.now() - start) / 1000;
+    key.rate = (counter / seconds).toFixed(1);
+    var msg = counter + ' keys tried (' + key.rate + ' / sec) over ' + seconds.toFixed(1) + " secs" ;
+    $('#personal-best-count').text(msg);
+    $('#current-key').text(key.key);
+    $('#current-score').text(key.score);
+    $('#current-count').text('key #' + key.count);
+
+    /* Report CPU information to the server. */
+    if (lastCpuReport < Date.now() - 10000) {
+        var output = {
+            id: id,
+            rate: key.rate,
+            counter: key.counter
+        };
+        $.post('cpu', JSON.stringify(output), function(global) {
+            $('#global-rate').text(global.rate.toFixed(1) + ' keys / sec');
+            $('#global-clients').text(global.clients + ' clients');
+            if (global.version > version) {
+                location.reload(true);
+            }
+            if (global.message) {
+                if ($('#message').html() !== global.message) {
+                    $('#message').html(global.message);
+                    $('#message').show();
+                }
+            } else {
+                $('#message').hide();
+            }
+        }, 'json');
+        lastCpuReport = Date.now();
+    }
 }
 
 function runIfNotPaused(nextkeys, words) {
@@ -131,12 +172,14 @@ function compute() {
     console.log(words.length + " words");
     Key.words = words;
 
+    // TODO get current best from server
+
     workers = getWorkers();
 
     var keys;
-    if (bestkey) {
-        console.log("starting with best key " + bestkey);
-        keys = mutatedKeys(bestkey);
+    if (best.key) {
+        console.log("starting with best key " + best.key);
+        keys = mutatedKeys(best.key);
     } else {
         console.log("no existing best key, generating some random ones to start.");
         keys = [Key.random(), Key.random(), Key.random(), Key.random()];
