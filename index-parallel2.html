@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Compute</title>
+    <title>Key Collaboration</title>
+    <link rel="stylesheet" href="key-collab.css"/>
     <!--<script src="http://code.jquery.com/jquery-latest.min.js"></script>-->
     <script src="/jquery-2.1.1.js"></script>
     <!--<script src="/underscore-min.js"></script>-->
@@ -19,23 +20,79 @@
             pause = false;
           }
 
-
       </script>
 
+</head>
+<body>
+<h1>Key Collaboration</h1>
+<a href="index.html">Single-threaded version</a> | <a href="index-parallel.html">Parallel version</a> | <a href="index-parallel2.html">Parallel version 2</a>
+<div id="credit" class="toplevel">
+    <form>
+        <label for="name">Name (for credit): </label>
+        <input type="text" id="name" value=""/>
+        <br/>
+        <br/>
+        Set the number of workers to the number of CPU cores you have.<br/>
+        <label>Workers:
+            <input type="text" name="workers" id="workers" value="4" size="2"/>
+        </label>
+        <input type="button" value="Pause" onclick="setPause()"/>
+        <input type="button" value="Resume" onclick="unPause()"/>
+    </form>
+</div>
 
-  </head>
 
-  <body>
-    <div id="message" class="toplevel"><b>compute</b>
+<div id="status" class="toplevel">
+    <div>
+        <span class="label">Global Rate</span>
+        <span id="global-rate" class="rate"></span>
+        <span id="global-clients" class="rate"></span>
     </div>
-
-    <label>Workers:
-        <input type="text" name="workers" id="workers" value="2" size="2"/>
-    </label><br>
-    <input type="button" value="Pause" onclick="setPause()"/>
-    <input type="button" value="Resume" onclick="unPause()"/>
-
-
-
-  </body>
+    <div id="overall-best" class="best">
+        <span class="label">Global Best</span>
+        <span id="overall-best-key" class="key">
+          --------------------------</span>
+        <span id="overall-best-score" class="score">0</span>
+        <span id="overall-best-name" class="name">0</span>
+    </div>
+    <div id="personal-best" class="best">
+        <span class="label">Personal Best</span>
+        <span id="personal-best-key" class="key">
+          --------------------------</span>
+        <span id="personal-best-score" class="score">0</span>
+        <span id="personal-best-count" class="count">0</span>
+    </div>
+    <div id="current" class="best">
+        <span class="label">Current Key</span>
+        <span id="current-key" class="key">
+          --------------------------</span>
+        <span id="current-score" class="score">0</span>
+        <span id="current-count" class="counte">0</span>
+    </div>
+</div>
+<div id="message" class="toplevel">
+</div>
+<div id="info" class="toplevel">
+    <h2>What is this thing?</h2>
+    <p>
+        <a href="http://redd.it/178vsz">
+            Challenge #118 [Hard] Alphabetizing cipher
+        </a>
+    </p>
+    <p>
+        This is a parallel map-reduce version which consumes all cores.
+    </p>
+    <h2>Where's the source code?</h2>
+    <p>
+        <a href="https://github.com/skeeto/key-collab">
+            https://github.com/joelbyrnes/key-collab
+        </a>
+        <br/>
+        Forked from
+        <a href="https://github.com/skeeto/key-collab">
+            https://github.com/skeeto/key-collab
+        </a>
+    </p>
+</div>
+</body>
 </html>
