@@ -1,5 +1,27 @@
 "use strict";
 
+var words = null;
+var workers = null;
+var start = null;
+var totalKeysTried = 0;
+
+var best = {score: -1};
+var overall = {score: -1};
+var name = localStorage.name || "anonymous";
+var id = Math.floor(Math.random() * 0xffffff).toString(16);
+var lastCpuReport = 0;
+
+// TODO this and maybe other keys should be retrieved from the server, stored some generic way
+var bestkey = "jbexuatfndshgoicwvzqklmpyr";
+
+/* Report KEY to the server. */
+function report(key) {
+    $.post('report', JSON.stringify({
+        key: key,
+        name: name
+    }));
+}
+
 function getWords() {
     console.log("getting words");
     var xhr = new XMLHttpRequest();
@@ -103,14 +125,6 @@ function worker(keystrings) {
     return keys;
 }
 
-var words = null;
-var workers = null;
-var start = null;
-var totalKeysTried = 0;
-
-// TODO this and maybe other keys should be retrieved from the server, stored some generic way
-var bestkey = "jbexuatfndshgoicwvzqklmpyr";
-
 function compute() {
     // read words
     words = getWords();
@@ -128,6 +142,32 @@ function compute() {
         keys = [Key.random(), Key.random(), Key.random(), Key.random()];
     }
     createParallel(keys, words);
+
+    /* Manage the form. */
+    $('form').bind('submit', function() {
+        $('#name').blur();
+        return false;
+    });
+    $('#name').bind('change', function() {
+        name = $('#name').val();
+        localStorage.name = name;
+    });
+    $('#name').val(name);
+
+    /* Get solution updates from the server. */
+    function getUpdate() {
+        $.getJSON('/best?score=' + overall.score, function(result) {
+            overall.score = result[0];
+            overall.key = result[1];
+            overall.name = result[2] || "anonymous";
+            $('#overall-best-score').text(overall.score);
+            $('#overall-best-key').text(overall.key);
+            $('#overall-best-name').text(overall.name);
+            // TODO recursive?? should use getTimeout
+            getUpdate();
+        });
+    }
+    getUpdate();
 }
 
 $(document).ready(function() {
