@@ -1,5 +1,7 @@
 "use strict";
 
+var version = 6;
+
 var words = null;
 var workers = null;
 var start = null;
@@ -82,9 +84,8 @@ function parallelCallback(keylists) {
     var keys = Array.prototype.concat.apply([], keylists);
     console.log(keys.length + " keys returned");
     var latestBest = Key.findBestKey(keys);
-    best = latestBest.key;
 
-    console.log("best is " + best.key + " with score " + latestBest.score);
+    console.log("latest best is " + latestBest.key + " with score " + latestBest.score);
 
     totalKeysTried += keys.length;
 
@@ -110,7 +111,7 @@ function update(key) {
         $('#personal-best-key').text(key.key);
         $('#personal-best-score').text(key.score);
     }
-    var counter = key.counter;
+    var counter = totalKeysTried;
     var seconds = (Date.now() - start) / 1000;
     key.rate = (counter / seconds).toFixed(1);
     var msg = counter + ' keys tried (' + key.rate + ' / sec) over ' + seconds.toFixed(1) + " secs" ;
