@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Compute</title>
+    <!--<script src="http://code.jquery.com/jquery-latest.min.js"></script>-->
+    <script src="/jquery-2.1.1.js"></script>
+    <!--<script src="/underscore-min.js"></script>-->
+    <script src="/paralleljs/lib/parallel.js"></script>
+    <script src="/key.js"></script>
+    <script src="/keys-parallel.js"></script>
+      <script>
+          var pause = false;
+
+          function setPause() {
+            pause = true;
+          }
+
+          function unPause() {
+            pause = false;
+          }
+
+
+      </script>
+
+
+  </head>
+
+  <body>
+    <div id="message" class="toplevel"><b>compute</b>
+    </div>
+
+    <label>Workers:
+        <input type="text" name="workers" id="workers" value="2" size="2"/>
+    </label><br>
+    <input type="button" value="Pause" onclick="setPause()"/>
+    <input type="button" value="Resume" onclick="unPause()"/>
+
+
+
+  </body>
+</html>

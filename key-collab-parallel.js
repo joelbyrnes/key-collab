@@ -200,10 +200,10 @@ function createParallel(keys, words) {
     console.log("creating parallel with "+ keys.length + " jobs");
 
     var p = new Parallel(keys, {
-        evalPath: 'eval.js', // needed to require a js file
+        evalPath: '/paralleljs/lib/eval.js', // needed to require a js file
         env: { words: words }
     });
-    p.require('key.js');
+    p.require('/key.js');
 
     console.log("running parallel map");
 
@@ -211,7 +211,6 @@ function createParallel(keys, words) {
 }
 
 function doWork() {
-    start = new Date();
     words = getWords();
 
     var uniqueWordsChars = uniqueChars(words);
@@ -222,6 +221,7 @@ function doWork() {
         keys.push({});
     }
 
+    start = new Date();
     createParallel(keys, words);
 
     /* Manage the form. */

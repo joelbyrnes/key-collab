@@ -61,13 +61,17 @@ Key.prototype.deriveRandom = function(n) {
     return new Key(base.join(''));
 };
 
-Key.prototype.mutate = function(n) {
+Key.mutate = function(str, n) {
     var start = Math.floor(n / 26);
     var idx = (n % 26);
 
-    var base = this.key.split('');
+    var base = str.split('');
     base.swap(start, idx);
-    return new Key(base.join(''));
+    return base.join('');
+};
+
+Key.prototype.mutate = function(n) {
+    return new Key(Key.mutate(this.key, n));
 };
 
 Key.prototype.toString = function() {
@@ -81,3 +85,17 @@ Key.prototype.encode = function(word) {
     }
     return output.join('');
 };
+
+Key.findBestKey = function(keys) {
+    var best = keys[0];
+
+    keys.forEach(function(curkey) {
+        //console.log("key " + curkey.key + " has score " + curkey.score);
+        // the equals means it will select the lastmost best key, otherwise if no solution is better it gets stuck
+        // we could also consider all of the keys with the same score
+        if (curkey.score >= best.score) best = curkey;
+    });
+
+    return best;
+};
+
